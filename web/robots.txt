@@ -1,0 +1,7 @@
+# TODO: [Dev] Confirm production domain, then keep this in sync with
+# web/sitemap.xml and the canonical URL in web/index.html.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://www.letitgotechnologies.com/sitemap.xml
