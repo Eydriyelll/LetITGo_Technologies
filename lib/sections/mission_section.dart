@@ -9,7 +9,7 @@ class MissionSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ContentBounds(
-      verticalPadding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+      verticalPadding: const EdgeInsets.only(bottom: AppSpacing.xxl),
       child: GlassCard(
         fillColor: AppColors.glassFillTinted,
         child: Column(

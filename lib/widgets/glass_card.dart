@@ -48,7 +48,57 @@ class GlassCard extends StatelessWidget {
     final fill = fillColor ?? AppColors.glassFillNeutral;
     final border = borderColor ?? AppColors.glassBorder;
 
-    Widget card = RepaintBoundary(
+    Widget card = _GlassSurface(
+      radius: radius,
+      blurSigma: blurSigma,
+      padding: padding,
+      fill: fill,
+      border: border,
+      borderWidth: borderWidth,
+      child: child,
+    );
+
+    if (onTap != null) {
+      // Subtle hover/press feedback — a cheap Transform.scale on an
+      // already-RepaintBoundary'd surface, not an extra blur pass, so it
+      // stays within the perf budget noted above.
+      card = _HoverLift(onTap: onTap!, child: card);
+    }
+
+    if (semanticLabel != null) {
+      card = Semantics(
+        label: semanticLabel,
+        button: onTap != null,
+        child: card,
+      );
+    }
+
+    return card;
+  }
+}
+
+class _GlassSurface extends StatelessWidget {
+  final BorderRadius radius;
+  final double blurSigma;
+  final EdgeInsetsGeometry padding;
+  final Color fill;
+  final Color border;
+  final double borderWidth;
+  final Widget child;
+
+  const _GlassSurface({
+    required this.radius,
+    required this.blurSigma,
+    required this.padding,
+    required this.fill,
+    required this.border,
+    required this.borderWidth,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
       child: ClipRRect(
         borderRadius: radius,
         child: BackdropFilter(
@@ -72,23 +122,62 @@ class GlassCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
 
-    if (onTap != null) {
-      card = MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(onTap: onTap, child: card),
-      );
-    }
+/// Hover = lift slightly + brighten border. Press = settle back down a
+/// touch, for tactile feedback. Scale-only, so no extra compositing cost.
+class _HoverLift extends StatefulWidget {
+  final VoidCallback onTap;
+  final Widget child;
+  const _HoverLift({required this.onTap, required this.child});
 
-    if (semanticLabel != null) {
-      card = Semantics(
-        label: semanticLabel,
-        button: onTap != null,
-        child: card,
-      );
-    }
+  @override
+  State<_HoverLift> createState() => _HoverLiftState();
+}
 
-    return card;
+class _HoverLiftState extends State<_HoverLift> {
+  bool _hovering = false;
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = _pressed ? 0.98 : (_hovering ? 1.015 : 1.0);
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() {
+        _hovering = false;
+        _pressed = false;
+      }),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        child: AnimatedScale(
+          scale: scale,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              boxShadow: _hovering
+                  ? [
+                      BoxShadow(
+                        color: AppColors.accentLight.withValues(alpha: 0.12),
+                        blurRadius: 28,
+                        spreadRadius: 1,
+                      ),
+                    ]
+                  : const [],
+            ),
+            child: widget.child,
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -24,7 +24,8 @@ import '../pages/not_found_page.dart';
 ///   - Keep route paths kebab-case and stable (they're indexed by search
 ///     engines and may be bookmarked/shared).
 ///   - New top-level pages go inside the ShellRoute's `routes` list below,
-///     with their own `name` for `context.goNamed(...)`.
+///     with their own `name` for `context.goNamed(...)`, built via
+///     `_fadePage` so the transition animation stays consistent.
 ///   - Add new routes to web/sitemap.xml when they ship.
 ///   - Add the page to Navbar's `_destinations` list if it belongs in the
 ///     primary nav, and to FooterSection's sitemap list either way.
@@ -59,6 +60,29 @@ class AnalyticsRouteObserver extends NavigatorObserver {
   void didReplace({Route? newRoute, Route? oldRoute}) => _log(newRoute);
 }
 
+/// A gentle fade + slight rise, used for every page in the shell so moving
+/// between pages feels like one continuous app rather than a hard cut.
+/// Short and subtle on purpose — this runs on every navigation, so it
+/// should never feel like it's in the way.
+CustomTransitionPage<void> _fadePage(Widget child, GoRouterState state) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 260),
+    reverseTransitionDuration: const Duration(milliseconds: 200),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+      return FadeTransition(
+        opacity: curved,
+        child: Transform.translate(
+          offset: Offset(0, (1 - curved.value) * 12),
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> shellNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -82,42 +106,42 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: AppRoutes.home,
           name: 'home',
-          builder: (context, state) => const HomePage(),
+          pageBuilder: (context, state) => _fadePage(const HomePage(), state),
         ),
         GoRoute(
           path: AppRoutes.about,
           name: 'about',
-          builder: (context, state) => const AboutPage(),
+          pageBuilder: (context, state) => _fadePage(const AboutPage(), state),
         ),
         GoRoute(
           path: AppRoutes.values,
           name: 'values',
-          builder: (context, state) => const ValuesPage(),
+          pageBuilder: (context, state) => _fadePage(const ValuesPage(), state),
         ),
         GoRoute(
           path: AppRoutes.products,
           name: 'products-services',
-          builder: (context, state) => const ProductsServicesPage(),
+          pageBuilder: (context, state) => _fadePage(const ProductsServicesPage(), state),
         ),
         GoRoute(
           path: AppRoutes.history,
           name: 'history',
-          builder: (context, state) => const HistoryPage(),
+          pageBuilder: (context, state) => _fadePage(const HistoryPage(), state),
         ),
         GoRoute(
           path: AppRoutes.careers,
           name: 'careers',
-          builder: (context, state) => const CareersPage(),
+          pageBuilder: (context, state) => _fadePage(const CareersPage(), state),
         ),
         GoRoute(
           path: AppRoutes.privacyPolicy,
           name: 'privacy-policy',
-          builder: (context, state) => const PrivacyPolicyPage(),
+          pageBuilder: (context, state) => _fadePage(const PrivacyPolicyPage(), state),
         ),
         GoRoute(
           path: AppRoutes.terms,
           name: 'terms',
-          builder: (context, state) => const TermsPage(),
+          pageBuilder: (context, state) => _fadePage(const TermsPage(), state),
         ),
       ],
     ),

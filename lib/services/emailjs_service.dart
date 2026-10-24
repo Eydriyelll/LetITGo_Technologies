@@ -8,24 +8,35 @@ import 'package:http/http.dart' as http;
 /// so this works cleanly from pure Dart on Flutter Web.
 ///
 /// SECURITY NOTE: EmailJS's "Public Key" is designed to be exposed on the
-/// client — that's how the product works — but you should still:
+/// client — that's the whole point of calling it a *public* key, the same
+/// way a Stripe publishable key or a Firebase web config is meant to be
+/// visible in client code. It is not a secret, so baking it in as the
+/// default below is fine. Two things still matter:
 ///   1. Restrict allowed origins/domains in the EmailJS dashboard to your
-///      production domain (and localhost for dev).
+///      production domain (and localhost for dev), so the key can't be
+///      reused from a copy-pasted site.
 ///   2. Never put a Private Key here. If EmailJS issues one for your
-///      account, it must stay server-side only.
+///      account, it must stay server-side only — this file never needs it.
 ///
-/// All three IDs below are pulled from --dart-define flags at build time,
-/// never hardcoded, so different environments (staging/prod) and different
-/// developers' local EmailJS test accounts can swap values without touching
-/// this file. See README.md for the exact build command.
+/// The defaultValue below is the team's live EmailJS config, so the
+/// contact form works out of the box with no build flags needed. The
+/// --dart-define override still works on top of it (e.g. to point a
+/// staging build at a different EmailJS template), so nothing about the
+/// override mechanism changed — only the fallback did.
 /// ---------------------------------------------------------------------------
 class EmailJsConfig {
-  static const String serviceId =
-      String.fromEnvironment('EMAILJS_SERVICE_ID', defaultValue: '');
-  static const String templateId =
-      String.fromEnvironment('EMAILJS_TEMPLATE_ID', defaultValue: '');
-  static const String publicKey =
-      String.fromEnvironment('EMAILJS_PUBLIC_KEY', defaultValue: '');
+  static const String serviceId = String.fromEnvironment(
+    'EMAILJS_SERVICE_ID',
+    defaultValue: 'service_u23qwze',
+  );
+  static const String templateId = String.fromEnvironment(
+    'EMAILJS_TEMPLATE_ID',
+    defaultValue: 'template_phno594',
+  );
+  static const String publicKey = String.fromEnvironment(
+    'EMAILJS_PUBLIC_KEY',
+    defaultValue: 'hLBrULwvuQVqGeqlz',
+  );
 
   static bool get isConfigured =>
       serviceId.isNotEmpty && templateId.isNotEmpty && publicKey.isNotEmpty;

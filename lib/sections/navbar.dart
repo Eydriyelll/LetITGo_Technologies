@@ -94,8 +94,6 @@ class Navbar extends StatelessWidget {
 class _Logo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Placeholder wordmark until a logo file is supplied — "LIGT".
-    // TODO: [Design] Replace with assets/images/logo.svg when available.
     return Semantics(
       label: 'Let IT Go Technologies, home',
       button: true,
@@ -105,31 +103,18 @@ class _Logo extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                gradient: AppColors.accentGradient,
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: const Text(
-                'L',
-                style: TextStyle(
-                  fontFamily: AppTheme.displayFontFamily,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18,
-                  color: AppColors.abyssDark,
-                ),
-              ),
+            Image.asset(
+              'assets/images/logo-mark.png',
+              width: 34,
+              height: 34,
             ),
             const SizedBox(width: AppSpacing.sm),
             const Text(
-              'LIGT',
+              'LET IT GO',
               style: TextStyle(
                 fontFamily: AppTheme.displayFontFamily,
                 fontWeight: FontWeight.w600,
-                fontSize: 20,
+                fontSize: 17,
                 letterSpacing: 0.5,
                 color: AppColors.textPrimary,
               ),

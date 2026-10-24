@@ -71,31 +71,18 @@ class FooterSection extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
+            Image.asset(
+              'assets/images/logo-mark.png',
               width: 28,
               height: 28,
-              decoration: const BoxDecoration(
-                gradient: AppColors.accentGradient,
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: const Text(
-                'L',
-                style: TextStyle(
-                  fontFamily: AppTheme.displayFontFamily,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                  color: AppColors.abyssDark,
-                ),
-              ),
             ),
             const SizedBox(width: AppSpacing.sm),
             const Text(
-              'LIGT',
+              'LET IT GO',
               style: TextStyle(
                 fontFamily: AppTheme.displayFontFamily,
                 fontWeight: FontWeight.w600,
-                fontSize: 18,
+                fontSize: 16,
                 color: AppColors.textPrimary,
               ),
             ),

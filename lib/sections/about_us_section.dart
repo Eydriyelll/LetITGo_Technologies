@@ -17,24 +17,9 @@ class AboutUsSection extends StatelessWidget {
         children: [
           Text('About us', style: Theme.of(context).textTheme.displayMedium),
           const SizedBox(height: AppSpacing.lg),
-          Responsive(
-            mobile: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _introText(context),
-                const SizedBox(height: AppSpacing.lg),
-                const _OutreachPhoto(),
-              ],
-            ),
-            desktop: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(flex: 3, child: _introText(context)),
-                const SizedBox(width: AppSpacing.xl),
-                const Expanded(flex: 2, child: _OutreachPhoto()),
-              ],
-            ),
-          ),
+          _introText(context),
+          const SizedBox(height: AppSpacing.xl),
+          const _OutreachPhoto(),
         ],
       ),
     );
@@ -58,6 +43,15 @@ class _OutreachPhoto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = context.screenWidth;
+    // Full-width, generously sized — this is the team photo, it should
+    // read as a real feature of the page, not a thumbnail.
+    final photoHeight = AppBreakpoints.isDesktop(width)
+        ? 460.0
+        : AppBreakpoints.isTablet(width)
+            ? 360.0
+            : 240.0;
+
     return GlassCard(
       padding: const EdgeInsets.all(AppSpacing.sm),
       child: Column(
@@ -69,11 +63,15 @@ class _OutreachPhoto extends StatelessWidget {
             child: Semantics(
               label: 'Our team at a community donation drive',
               image: true,
-              child: AspectRatio(
-                aspectRatio: 16 / 10,
+              child: SizedBox(
+                width: double.infinity,
+                height: photoHeight,
                 child: Image.asset(
                   'assets/images/about-csce-donation.jpg',
                   fit: BoxFit.cover,
+                  // Keep heads/faces in frame rather than centering on the
+                  // vertical midpoint of the whole group.
+                  alignment: const Alignment(0, -0.35),
                 ),
               ),
             ),

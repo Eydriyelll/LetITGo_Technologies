@@ -23,33 +23,41 @@ and Material 3 APIs used in `app_theme.dart`.
 ### Run locally
 
 ```bash
+flutter run -d chrome
+```
+
+That's it — the team's live EmailJS Service ID, Template ID, and Public
+Key are baked in as defaults in `lib/services/emailjs_service.dart`, so
+the contact form works with no extra flags. To point a build at a
+*different* EmailJS account (a personal test account, a staging template,
+etc.), override any of the three with `--dart-define`:
+
+```bash
 flutter run -d chrome \
   --dart-define=EMAILJS_SERVICE_ID=your_service_id \
   --dart-define=EMAILJS_TEMPLATE_ID=your_template_id \
   --dart-define=EMAILJS_PUBLIC_KEY=your_public_key
 ```
 
-Without the three `EMAILJS_*` defines, the app still runs — the contact
-modal will show a "not configured yet" message instead of silently failing.
-
 ---
 
 ## 2. EmailJS setup (contact / inquiry form)
 
-1. Create a free account at [emailjs.com](https://www.emailjs.com/).
-2. Add an **Email Service** (e.g. Gmail, Outlook, SMTP) → note its **Service ID**.
-3. Create an **Email Template** with these variables (they must match
-   exactly, they're wired in `lib/widgets/contact_modal.dart`):
-   - `{{from_name}}`
-   - `{{from_email}}`
-   - `{{company}}`
-   - `{{message}}`
-4. Copy the template's **Template ID**.
-5. Copy your account's **Public Key** (Account → General).
-6. In the EmailJS dashboard, restrict allowed origins to your production
-   domain (and `localhost` for local dev) — this is EmailJS's built-in
-   protection against the public key being used from other sites.
-7. Feed all three values in as `--dart-define` flags (see below for Vercel).
+Already configured — the live Service ID, Template ID, and Public Key are
+set as defaults in `lib/services/emailjs_service.dart`. EmailJS's "Public
+Key" is meant to be public (same idea as a Stripe publishable key), so
+this is safe to ship; just make sure allowed origins are restricted to
+your real domain in the EmailJS dashboard (Account → Security) so the key
+can't be reused from a copy-pasted site.
+
+The template expects these variables (wired in `lib/widgets/contact_modal.dart`):
+- `{{from_name}}`
+- `{{from_email}}`
+- `{{company}}`
+- `{{message}}`
+
+To swap in a different EmailJS account later, see the `--dart-define`
+override above — nothing else needs to change.
 
 The honeypot field and client-side validation (`lib/widgets/contact_modal.dart`)
 run before any request reaches EmailJS, so most bot traffic never gets that far.
@@ -59,21 +67,17 @@ run before any request reaches EmailJS, so most bot traffic never gets that far.
 ## 3. Deploying to Vercel
 
 `vercel.json` is already configured with:
-- The Flutter build command, wired to pull `EMAILJS_*` from Vercel
-  environment variables at build time.
+- A plain `flutter build web --release` — no environment variables needed,
+  since the EmailJS keys are baked in as defaults (see section 2). If you
+  ever want a Vercel deploy to use a *different* EmailJS account (e.g. a
+  separate staging template), add `EMAILJS_SERVICE_ID` /
+  `EMAILJS_TEMPLATE_ID` / `EMAILJS_PUBLIC_KEY` as Vercel Environment
+  Variables and append the matching `--dart-define=...=$VAR_NAME` flags
+  back onto the `buildCommand` in `vercel.json`.
 - SPA rewrites so deep links like `/privacy-policy` resolve correctly with
   `go_router`'s path-based routing (Vercel would 404 on a raw path reload
   without this).
 - Basic security headers and long-cache headers for `/assets/*`.
-
-**In the Vercel project settings**, add these Environment Variables
-(Production, and Preview if you want the form to work on preview deploys):
-
-| Name | Value |
-|---|---|
-| `EMAILJS_SERVICE_ID` | from EmailJS dashboard |
-| `EMAILJS_TEMPLATE_ID` | from EmailJS dashboard |
-| `EMAILJS_PUBLIC_KEY` | from EmailJS dashboard |
 
 Vercel auto-detects Flutter poorly, so confirm in Project Settings:
 - **Framework Preset:** Other
@@ -126,13 +130,41 @@ To activate real fonts:
 
 ---
 
-## 6. Logo
+## 6. Logo & favicons
 
-No logo file exists yet, so the navbar and footer currently render a
-generated **"LIGT"** wordmark + circular glyph (`lib/sections/navbar.dart`
-`_Logo`, and the matching block in `lib/sections/footer_section.dart`).
-Swap in `assets/images/logo.svg` (or `.png`) once available — both spots are
-marked `// TODO: [Design]`.
+The real logo is in:
+- `assets/images/logo.png` — full lockup (icon + "LET IT GO TECHNOLOGIES"
+  wordmark), transparent background. Not currently used in-app, but
+  available for anywhere a full lockup is wanted (e.g. a print/export
+  asset or a future splash screen).
+- `assets/images/logo-mark.png` — just the snowflake, isolated from the
+  wordmark, transparent background. This is what `lib/sections/navbar.dart`
+  (`_Logo`) and `lib/sections/footer_section.dart` actually render, next
+  to a "LET IT GO" text label — transparent works fine there since both
+  sit on the app's own dark gradient background.
+
+The browser-facing icons (favicon, Apple touch icon, Android/PWA icons) in
+`web/` are generated **from that same snowflake mark, composited onto the
+brand's dark navy (`#061838`) instead of left transparent** — a
+transparent icon looks inconsistent depending on what's behind it (a white
+browser tab, a light OS theme, a home-screen background), so every
+browser/OS icon gets a solid brand-colored backing:
+- `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png` — browser tab
+- `apple-touch-icon.png` — iOS home screen
+- `android-chrome-192x192.png` / `-512x512.png` — PWA/Android, full-bleed
+- `android-chrome-maskable-192x192.png` / `-512x512.png` — same, but with
+  extra padding inside the frame (per Android's adaptive-icon spec) so the
+  mark survives being cropped into a circle/squircle/whatever shape a
+  launcher applies
+- `web/manifest.json` declares all of the above with the correct
+  `purpose: any` / `purpose: maskable` split, and `web/index.html`'s
+  `<link rel="icon">` / `<link rel="apple-touch-icon">` tags point at them
+- `web/og-preview.png` — the logo on the brand gradient, used for social
+  link previews (Open Graph / Twitter Card)
+
+If the logo changes, regenerate this whole set rather than hand-editing
+any one file — the icon mark needs to be re-isolated from the new lockup
+and re-composited at each size.
 
 ---
 
