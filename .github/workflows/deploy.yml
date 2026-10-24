@@ -29,11 +29,16 @@ jobs:
             --dart-define=EMAILJS_TEMPLATE_ID=${{ secrets.EMAILJS_TEMPLATE_ID }} \
             --dart-define=EMAILJS_PUBLIC_KEY=${{ secrets.EMAILJS_PUBLIC_KEY }}
 
-      - name: Prepare Output Directory
+      - name: Prepare Vercel Prebuilt Structure
         run: |
-          cp vercel.json build/web/vercel.json
-          mkdir -p build/web/.vercel
-          cat <<EOF > build/web/.vercel/project.json
+          mkdir -p .vercel/output/static
+          cp -r build/web/* .vercel/output/static/
+          cat <<EOF > .vercel/output/config.json
+          {
+            "version": 3
+          }
+          EOF
+          cat <<EOF > .vercel/project.json
           {
             "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
             "orgId": "${{ secrets.VERCEL_ORG_ID }}"
@@ -43,6 +48,4 @@ jobs:
       - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          cd build/web
-          npx vercel deploy --prod --token=$VERCEL_TOKEN --yes
+        run: npx vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN --yes
