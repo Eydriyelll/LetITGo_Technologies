@@ -1,0 +1,7 @@
+Drop real logo / hero / OG-preview image files in this folder.
+This placeholder file exists so `assets/images/` is a non-empty,
+real directory on disk — an empty folder can silently disappear
+when zipping/extracting or cloning, which breaks the directory-based
+asset declaration in pubspec.yaml.
+
+Once real images are added, this file can be deleted.
