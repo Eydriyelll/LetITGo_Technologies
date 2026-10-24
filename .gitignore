@@ -21,3 +21,5 @@ pubspec.lock
 
 # Widget Preview related
 .widget_preview/
+.vercel
+.env*
